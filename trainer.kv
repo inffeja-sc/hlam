@@ -1,0 +1,145 @@
+<TrainerLayout>:
+    coord_system: coord_system
+    orientation: 'vertical'
+    padding: [0, -5, 0, 0]
+    spacing: 0
+    
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    Button:
+        text: app.get_mode_text()
+        size_hint: 1, None
+        height: 70 # УВЕЛИЧЕНО (было 55)
+        on_press: app.toggle_mode()
+        font_size: 18 # УВЕЛИЧЕНО (было 14)
+        bold: True
+        background_color: 0.1, 0.2, 0.4, 1
+        color: 1, 1, 1, 1
+
+    CoordinateSystem:
+        id: coord_system
+        size_hint_y: 1 
+        # scale и grid_size теперь задаются в Python коде
+
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, None
+        height: 200 # УВЕЛИЧЕНО (было 160)
+        padding: [10, 10, 10, 10]
+        spacing: 8
+        
+        canvas.before:
+            Color:
+                rgba: 0.9, 0.9, 0.9, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Label:
+            text: app.task_hint_text
+            size_hint_y: None
+            height: 40 # УВЕЛИЧЕНО (было 30)
+            font_size: 22 # УВЕЛИЧЕНО (было 18)
+            color: 0.8, 0, 0, 1 
+            bold: True
+            opacity: 1 if app.mode == 'set_point' else 0 
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 50 # УВЕЛИЧЕНО (было 40)
+            spacing: 10
+            
+            Label:
+                text: 'X:'
+                size_hint_x: None
+                width: 40 # УВЕЛИЧЕНО
+                font_size: 24 # УВЕЛИЧЕНО
+                color: 0, 0, 0, 1
+                
+            TextInput:
+                id: input_x
+                text: app.input_x
+                hint_text: '0'
+                input_filter: 'int'
+                multiline: False
+                font_size: 24 # УВЕЛИЧЕНО
+                background_color: 1, 1, 1, 1
+                foreground_color: 0, 0, 0, 1
+                readonly: True if app.mode == 'set_point' else False 
+                opacity: 1 if app.mode == 'find_coords' else 0.5
+                on_text: app.input_x = self.text
+                
+            Label:
+                text: 'Y:'
+                size_hint_x: None
+                width: 40
+                font_size: 24
+                color: 0, 0, 0, 1
+                
+            TextInput:
+                id: input_y
+                text: app.input_y
+                hint_text: '0'
+                input_filter: 'int'
+                multiline: False
+                font_size: 24
+                background_color: 1, 1, 1, 1
+                foreground_color: 0, 0, 0, 1
+                readonly: True if app.mode == 'set_point' else False
+                opacity: 1 if app.mode == 'find_coords' else 0.5
+                on_text: app.input_y = self.text
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 50 # УВЕЛИЧЕНО
+            spacing: 10
+            
+            Button:
+                text: 'Проверить'
+                on_press: app.check_answer()
+                font_size: 20 # УВЕЛИЧЕНО
+                background_color: 0.1, 0.3, 0.6, 1
+                color: 1, 1, 1, 1
+            
+            Button:
+                text: 'Далее'
+                on_press: app.next_task()
+                font_size: 20 # УВЕЛИЧЕНО
+                background_color: 0.1, 0.4, 0.1, 1
+                color: 1, 1, 1, 1
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 40 # УВЕЛИЧЕНО
+            spacing: 20
+            
+            Label:
+                text: app.result_message
+                font_size: 18 # УВЕЛИЧЕНО
+                color: 0, 0, 0, 1
+                bold: True
+                halign: 'left'
+                text_size: self.width, None
+            
+            Label:
+                text: f'Счет: {app.score} из {app.total_tasks}'
+                font_size: 18 # УВЕЛИЧЕНО
+                color: 0.2, 0.2, 0.2, 1
+                bold: True
+                halign: 'right'
+                text_size: self.width, None

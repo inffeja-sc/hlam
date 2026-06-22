@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тренажёр логических уравнений</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #e8e8f0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .container {
+    max-width: 900px;
+    width: 100%;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(90deg, #00f2fe, #4facfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: #a0a0c0;
+    font-size: 0.95rem;
+  }
+
+  .stats {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+  }
+
+  .stat-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(79, 172, 254, 0.3);
+    padding: 12px 20px;
+    border-radius: 12px;
+    min-width: 120px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: #a0a0c0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #4facfe;
+    margin-top: 4px;
+  }
+
+  .stat-value.correct { color: #00e676; }
+  .stat-value.wrong { color: #ff5252; }
+
+  .difficulty {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+
+  .diff-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #e8e8f0;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+  }
+
+  .diff-btn:hover {
+    background: rgba(79, 172, 254, 0.2);
+    border-color: #4facfe;
+  }
+
+  .diff-btn.active {
+    background: linear-gradient(90deg, #00f2fe, #4facfe);
+    color: #0f0c29;
+    font-weight: bold;
+    border-color: transparent;
+  }
+
+  .task-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(79, 172, 254, 0.3);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .task-label {
+    color: #a0a0c0;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .equation {
+    font-size: 1.8rem;
+    text-align: center;
+    padding: 25px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    letter-spacing: 2px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(79, 172, 254, 0.2);
+    overflow-x: auto;
+  }
+
+  .op { color: #ffeb3b; font-weight: bold; }
+  .var { color: #00f2fe; font-weight: bold; }
+  .par { color: #ff9800; }
+  .eq-sign { color: #ff4081; font-weight: bold; }
+  .q-mark { color: #ff4081; font-weight: bold; animation: pulse 1.5s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .inputs-section {
+    margin-bottom: 25px;
+  }
+
+  .inputs-title {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: #a0a0c0;
+  }
+
+  .variables-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .var-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .var-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #00f2fe;
+    font-family: 'Consolas', monospace;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 70px;
+    height: 34px;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: rgba(255, 82, 82, 0.3);
+    border: 2px solid #ff5252;
+    border-radius: 34px;
+    transition: 0.3s;
+  }
+
+  .slider::before {
+    content: "";
+    position: absolute;
+    height: 24px;
+    width: 24px;
+    left: 3px;
+    bottom: 3px;
+    background: #ff5252;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  input:checked + .slider {
+    background: rgba(0, 230, 118, 0.3);
+    border-color: #00e676;
+  }
+
+  input:checked + .slider::before {
+    transform: translateX(36px);
+    background: #00e676;
+  }
+
+  .var-value {
+    font-size: 0.85rem;
+    color: #a0a0c0;
+  }
+
+  .answer-section {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .answer-btn {
+    padding: 14px 35px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: 2px solid;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: transparent;
+    min-width: 120px;
+  }
+
+  .answer-btn.true-btn {
+    border-color: #00e676;
+    color: #00e676;
+  }
+
+  .answer-btn.true-btn:hover {
+    background: rgba(0, 230, 118, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .answer-btn.false-btn {
+    border-color: #ff5252;
+    color: #ff5252;
+  }
+
+  .answer-btn.false-btn:hover {
+    background: rgba(255, 82, 82, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .answer-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .result-message {
+    text-align: center;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 1.05rem;
+    display: none;
+    animation: slideIn 0.4s;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-message.correct {
+    background: rgba(0, 230, 118, 0.15);
+    border: 1px solid #00e676;
+    color: #00e676;
+    display: block;
+  }
+
+  .result-message.wrong {
+    background: rgba(255, 82, 82, 0.15);
+    border: 1px solid #ff5252;
+    color: #ff5252;
+    display: block;
+  }
+
+  .explanation {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: #d0d0e0;
+    line-height: 1.6;
+    font-family: 'Consolas', monospace;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    background: linear-gradient(90deg, #00f2fe, #4facfe);
+    color: #0f0c29;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+  }
+
+  .action-btn.secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e8e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .theory {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(79, 172, 254, 0.3);
+    border-radius: 20px;
+    padding: 25px;
+    margin-top: 20px;
+    backdrop-filter: blur(10px);
+  }
+
+  .theory h3 {
+    color: #4facfe;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+  }
+
+  .theory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .theory-item {
+    background: rgba(0, 0, 0, 0.25);
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 3px solid #4facfe;
+  }
+
+  .theory-item .op-name {
+    font-weight: bold;
+    color: #ffeb3b;
+    margin-bottom: 4px;
+  }
+
+  .theory-item .op-desc {
+    font-size: 0.85rem;
+    color: #c0c0d0;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 1.6rem; }
+    .equation { font-size: 1.2rem; padding: 15px; }
+    .task-card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🧠 Тренажёр логических уравнений</h1>
+    <p class="subtitle">Определи значение логического выражения при заданных значениях переменных</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat-box">
+      <div class="stat-label">Всего задач</div>
+      <div class="stat-value" id="totalStat">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Правильно</div>
+      <div class="stat-value correct" id="correctStat">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Ошибок</div>
+      <div class="stat-value wrong" id="wrongStat">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Точность</div>
+      <div class="stat-value" id="accuracyStat">0%</div>
+    </div>
+  </div>
+
+  <div class="difficulty">
+    <button class="diff-btn active" data-level="1">Лёгкий</button>
+    <button class="diff-btn" data-level="2">Средний</button>
+    <button class="diff-btn" data-level="3">Сложный</button>
+  </div>
+
+  <div class="task-card">
+    <div class="task-label">Задача №<span id="taskNumber">1</span></div>
+    <div class="equation" id="equation"></div>
+
+    <div class="inputs-section">
+      <div class="inputs-title">Задай значения переменных:</div>
+      <div class="variables-row" id="variablesRow"></div>
+    </div>
+
+    <div class="inputs-section">
+      <div class="inputs-title">Результат выражения:</div>
+      <div class="answer-section">
+        <button class="answer-btn true-btn" data-answer="true">1 (Истина)</button>
+        <button class="answer-btn false-btn" data-answer="false">0 (Ложь)</button>
+      </div>
+    </div>
+
+    <div class="result-message" id="resultMessage"></div>
+
+    <div class="actions">
+      <button class="action-btn" id="nextBtn">Следующая задача →</button>
+      <button class="action-btn secondary" id="resetBtn">Сбросить статистику</button>
+    </div>
+  </div>
+
+  <div class="theory">
+    <h3>📘 Справочник логических операций</h3>
+    <div class="theory-grid">
+      <div class="theory-item">
+        <div class="op-name">¬A (NOT / Отрицание)</div>
+        <div class="op-desc">Инвертирует значение: ¬1=0, ¬0=1</div>
+      </div>
+      <div class="theory-item">
+        <div class="op-name">A ∧ B (AND / Конъюнкция)</div>
+        <div class="op-desc">Истина, только если оба операнда истинны</div>
+      </div>
+      <div class="theory-item">
+        <div class="op-name">A ∨ B (OR / Дизъюнкция)</div>
+        <div class="op-desc">Истина, если хотя бы один операнд истинен</div>
+      </div>
+      <div class="theory-item">
+        <div class="op-name">A → B (Импликация)</div>
+        <div class="op-desc">Ложь только когда A=1, B=0. Иначе истина</div>
+      </div>
+      <div class="theory-item">
+        <div class="op-name">A ⊕ B (XOR / Исключающее ИЛИ)</div>
+        <div class="op-desc">Истина, если операнды различны</div>
+      </div>
+      <div class="theory-item">
+        <div class="op-name">A ≡ B (Эквиваленция)</div>
+        <div class="op-desc">Истина, если оба операнда равны</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== Логические операции =====
+  const ops = {
+    NOT: (a) => !a,
+    AND: (a, b) => a && b,
+    OR:  (a, b) => a || b,
+    IMP: (a, b) => (!a) || b,
+    XOR: (a, b) => a !== b,
+    EQ:  (a, b) => a === b
+  };
+
+  // ===== Состояние =====
+  let state = {
+    level: 1,
+    taskNumber: 1,
+    total: 0,
+    correct: 0,
+    wrong: 0,
+    currentTask: null,
+    answered: false
+  };
+
+  // ===== Генерация задачи =====
+  function generateTask() {
+    const vars = ['A', 'B', 'C'];
+    const values = {};
+    const usedVars = state.level === 1 ? 2 : (state.level === 2 ? 2 : 3);
+    const activeVars = vars.slice(0, usedVars);
+
+    activeVars.forEach(v => values[v] = Math.random() < 0.5);
+
+    let expression, result, explanation;
+
+    if (state.level === 1) {
+      // Простые выражения: одна операция
+      const opTypes = ['AND', 'OR', 'XOR'];
+      const op = opTypes[Math.floor(Math.random() * opTypes.length)];
+      const v1 = activeVars[0], v2 = activeVars[1];
+      const useNot = Math.random() < 0.3;
+
+      if (useNot) {
+        expression = `¬${v1} ${opSymbol(op)} ${v2}`;
+        const val1 = !values[v1];
+        result = ops[op](val1, values[v2]);
+        explanation = `¬${v1}=${boolStr(!values[v1])}, затем ${boolStr(!values[v1])} ${op} ${boolStr(values[v2])} = ${boolStr(result)}`;
+      } else {
+        expression = `${v1} ${opSymbol(op)} ${v2}`;
+        result = ops[op](values[v1], values[v2]);
+        explanation = `${boolStr(values[v1])} ${op} ${boolStr(values[v2])} = ${boolStr(result)}`;
+      }
+    } else if (state.level === 2) {
+      // Две операции
+      const opTypes = ['AND', 'OR', 'XOR', 'IMP'];
+      const op1 = opTypes[Math.floor(Math.random() * opTypes.length)];
+      const op2 = opTypes[Math.floor(Math.random() * opTypes.length)];
+      const v1 = activeVars[0], v2 = activeVars[1];
+
+      const patterns = [
+        () => {
+          const expr = `(${v1} ${opSymbol(op1)} ${v2}) ${opSymbol(op2)} ¬${v1}`;
+          const r1 = ops[op1](values[v1], values[v2]);
+          const r2 = !values[v1];
+          const res = ops[op2](r1, r2);
+          return { expr, res, exp: `(${boolStr(values[v1])} ${op1} ${boolStr(values[v2])}) ${op2} ¬${boolStr(values[v1])} = ${boolStr(r1)} ${op2} ${boolStr(r2)} = ${boolStr(res)}` };
+        },
+        () => {
+          const expr = `¬${v1} ${opSymbol(op1)} (${v2} ${opSymbol(op2)} ${v1})`;
+          const r1 = !values[v1];
+          const r2 = ops[op2](values[v2], values[v1]);
+          const res = ops[op1](r1, r2);
+          return { expr, res, exp: `¬${boolStr(values[v1])} ${op1} (${boolStr(values[v2])} ${op2} ${boolStr(values[v1])}) = ${boolStr(r1)} ${op1} ${boolStr(r2)} = ${boolStr(res)}` };
+        }
+      ];
+      const p = patterns[Math.floor(Math.random() * patterns.length)]();
+      expression = p.expr; result = p.res; explanation = p.exp;
+    } else {
+      // Сложные выражения с 3 переменными
+      const opTypes = ['AND', 'OR', 'XOR', 'IMP', 'EQ'];
+      const op1 = opTypes[Math.floor(Math.random() * opTypes.length)];
+      const op2 = opTypes[Math.floor(Math.random() * opTypes.length)];
+      const op3 = opTypes[Math.floor(Math.random() * opTypes.length)];
+      const v1 = 'A', v2 = 'B', v3 = 'C';
+
+      const patterns = [
+        () => {
+          const expr = `(${v1} ${opSymbol(op1)} ${v2}) ${opSymbol(op2)} (${v3} ${opSymbol(op3)} ¬${v1})`;
+          const r1 = ops[op1](values[v1], values[v2]);
+          const r2 = ops[op3](values[v3], !values[v1]);
+          const res = ops[op2](r1, r2);
+          return { expr, res, exp: `(${boolStr(values[v1])} ${op1} ${boolStr(values[v2])}) ${op2} (${boolStr(values[v3])} ${op3} ${boolStr(!values[v1])}) = ${boolStr(r1)} ${op2} ${boolStr(r2)} = ${boolStr(res)}` };
+        },
+        () => {
+          const expr = `¬(${v1} ${opSymbol(op1)} ${v2}) ${opSymbol(op2)} (${v2} ${opSymbol(op3)} ${v3})`;
+          const r1 = !ops[op1](values[v1], values[v2]);
+          const r2 = ops[op3](values[v2], values[v3]);
+          const res = ops[op2](r1, r2);
+          return { expr, res, exp: `¬(${boolStr(values[v1])} ${op1} ${boolStr(values[v2])}) ${op2} (${boolStr(values[v2])} ${op3} ${boolStr(values[v3])}) = ${boolStr(r1)} ${op2} ${boolStr(r2)} = ${boolStr(res)}` };
+        },
+        () => {
+          const expr = `(${v1} ${opSymbol(op1)} ¬${v2}) ${opSymbol(op2)} (${v2} ${opSymbol(op3)} ${v3})`;
+          const r1 = ops[op1](values[v1], !values[v2]);
+          const r2 = ops[op3](values[v2], values[v3]);
+          const res = ops[op2](r1, r2);
+          return { expr, res, exp: `(${boolStr(values[v1])} ${op1} ${boolStr(!values[v2])}) ${op2} (${boolStr(values[v2])} ${op3} ${boolStr(values[v3])}) = ${boolStr(r1)} ${op2} ${boolStr(r2)} = ${boolStr(res)}` };
+        }
+      ];
+      const p = patterns[Math.floor(Math.random() * patterns.length)]();
+      expression = p.expr; result = p.res; explanation = p.exp;
+    }
+
+    state.currentTask = {
+      vars: activeVars,
+      values: values,
+      expression: expression,
+      result: result,
+      explanation: explanation
+    };
+  }
+
+  function opSymbol(op) {
+    return { AND: '∧', OR: '∨', XOR: '⊕', IMP: '→', EQ: '≡' }[op];
+  }
+
+  function boolStr(b) { return b ? '1' : '0'; }
+
+  // ===== Рендер =====
+  function renderTask() {
+    const task = state.currentTask;
+
+    // Уравнение
+    const eqEl = document.getElementById('equation');
+    let html = colorize(task.expression) + ` <span class="eq-sign">=</span> <span class="q-mark">?</span>`;
+    eqEl.innerHTML = html;
+
+    // Переменные
+    const varsRow = document.getElementById('variablesRow');
+    varsRow.innerHTML = '';
+    task.vars.forEach(v => {
+      const div = document.createElement('div');
+      div.className = 'var-toggle';
+      div.innerHTML = `
+        <div class="var-name">${v}</div>
+        <label class="toggle-switch">
+          <input type="checkbox" data-var="${v}" ${task.values[v] ? 'checked' : ''}>
+          <span class="slider"></span>
+        </label>
+        <div class="var-value" id="val-${v}">${task.values[v] ? '1 (Истина)' : '0 (Ложь)'}</div>
+      `;
+      varsRow.appendChild(div);
+    });
+
+    // Обработчики переключателей
+    varsRow.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const varName = e.target.dataset.var;
+        state.currentTask.values[varName] = e.target.checked;
+        // Пересчитываем результат с новыми значениями
+        recalculate();
+        document.getElementById(`val-${varName}`).textContent =
+          e.target.checked ? '1 (Истина)' : '0 (Ложь)';
+      });
+    });
+
+    // Сброс состояния ответа
+    state.answered = false;
+    document.querySelectorAll('.answer-btn').forEach(b => b.disabled = false);
+    document.getElementById('resultMessage').className = 'result-message';
+    document.getElementById('resultMessage').innerHTML = '';
+
+    document.getElementById('taskNumber').textContent = state.taskNumber;
+  }
+
+  function colorize(expr) {
+    return expr
+      .replace(/([ABC])/g, '<span class="var">$1</span>')
+      .replace(/(∧|∨|⊕|→|≡)/g, '<span class="op">$1</span>')
+      .replace(/(¬)/g, '<span class="op">$1</span>')
+      .replace(/([()])/g, '<span class="par">$1</span>');
+  }
+
+  // Пересчёт результата при изменении переменных
+  function recalculate() {
+    const task = state.currentTask;
+    const values = task.values;
+    // Парсим выражение заново
+    const parsed = regenerateFromValues(task.expression, values);
+    task.result = parsed.result;
+    task.explanation = parsed.explanation;
+  }
+
+  function regenerateFromValues(expr, values) {
+    // Простая стратегия: восстанавливаем результат через разбор
+    // Для надёжности — пересоберём выражение с подстановкой значений
+    let e = expr;
+    // Заменяем переменные на их значения
+    e = e.replace(/[ABC]/g, (m) => values[m] ? '1' : '0');
+
+    // Парсим и вычисляем
+    const result = evalExpr(e);
+
+    // Строим объяснение
+    const expParts = [];
+    e.split('').forEach((c, i) => expParts.push(c));
+    const explanation = `Вычисление: ${e} = ${result ? '1' : '0'}`;
+
+    return { result, explanation };
+  }
+
+  // Вычисление логического выражения (простой парсер)
+  function evalExpr(expr) {
+    // Удаляем пробелы
+    expr = expr.replace(/\s+/g, '');
+
+    // Обработка скобок — рекурсивно
+    while (expr.includes('(')) {
+      expr = expr.replace(/\(([^()]+)\)/, (m, inner) => {
+        return evalSimple(inner) ? '1' : '0';
+      });
+    }
+    return evalSimple(expr);
+  }
+
+  function evalSimple(expr) {
+    // Приоритет: NOT (¬) → AND (∧) → XOR (⊕) → OR (∨) → IMP (→) → EQ (≡)
+
+    // NOT
+    while (expr.includes('¬')) {
+      expr = expr.replace(/¬([01])/, (m, a) => a === '1' ? '0' : '1');
+    }
+
+    // AND
+    while (expr.includes('∧')) {
+      expr = expr.replace(/([01])∧([01])/, (m, a, b) => (a === '1' && b === '1') ? '1' : '0');
+    }
+
+    // XOR
+    while (expr.includes('⊕')) {
+      expr = expr.replace(/([01])⊕([01])/, (m, a, b) => (a !== b) ? '1' : '0');
+    }
+
+    // OR
+    while (expr.includes('∨')) {
+      expr = expr.replace(/([01])∨([01])/, (m, a, b) => (a === '1' || b === '1') ? '1' : '0');
+    }
+
+    // IMP
+    while (expr.includes('→')) {
+      expr = expr.replace(/([01])→([01])/, (m, a, b) => (a === '1' && b === '0') ? '0' : '1');
+    }
+
+    // EQ
+    while (expr.includes('≡')) {
+      expr = expr.replace(/([01])≡([01])/, (m, a, b) => (a === b) ? '1' : '0');
+    }
+
+    return expr === '1';
+  }
+
+  // ===== Проверка ответа =====
+  function checkAnswer(userAnswer) {
+    if (state.answered) return;
+    state.answered = true;
+    state.total++;
+
+    const task = state.currentTask;
+    const isCorrect = userAnswer === task.result;
+
+    if (isCorrect) state.correct++;
+    else state.wrong++;
+
+    const msg = document.getElementById('resultMessage');
+    if (isCorrect) {
+      msg.className = 'result-message correct';
+      msg.innerHTML = `✅ Правильно! Результат: <b>${task.result ? '1 (Истина)' : '0 (Ложь)'}</b>
+        <div class="explanation">${task.explanation}</div>`;
+    } else {
+      msg.className = 'result-message wrong';
+      msg.innerHTML = `❌ Неверно! Правильный ответ: <b>${task.result ? '1 (Истина)' : '0 (Ложь)'}</b>
+        <div class="explanation">${task.explanation}</div>`;
+    }
+
+    document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+    updateStats();
+  }
+
+  function updateStats() {
+    document.getElementById('totalStat').textContent = state.total;
+    document.getElementById('correctStat').textContent = state.correct;
+    document.getElementById('wrongStat').textContent = state.wrong;
+    const acc = state.total > 0 ? Math.round((state.correct / state.total) * 100) : 0;
+    document.getElementById('accuracyStat').textContent = acc + '%';
+  }
+
+  // ===== Обработчики событий =====
+  document.querySelectorAll('.answer-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const answer = btn.dataset.answer === 'true';
+      checkAnswer(answer);
+    });
+  });
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    state.taskNumber++;
+    generateTask();
+    renderTask();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (confirm('Сбросить всю статистику?')) {
+      state.total = 0;
+      state.correct = 0;
+      state.wrong = 0;
+      state.taskNumber = 1;
+      updateStats();
+      generateTask();
+      renderTask();
+    }
+  });
+
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.level = parseInt(btn.dataset.level);
+      generateTask();
+      renderTask();
+    });
+  });
+
+  // ===== Старт =====
+  generateTask();
+  renderTask();
+  updateStats();
+</script>
+</body>
+</html>
